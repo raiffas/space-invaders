@@ -1,54 +1,60 @@
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 
-interface AppProps {}
-interface imageProperties {
-  xPos: 0, 
-  yPos: 0,
-  width: 50,
-  height: 50
+interface ImageProperties {
+  xPos: number
+  yPos: number
+  width: number
+  height: number
 }
 
-export default function App( {}: AppProps) {
-  // set up canvas
+export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const ctx = canvasRef.current?.getContext('2d') as CanvasRenderingContext2D | null
+  const playerPropertiesRef = useRef<ImageProperties>({ xPos: 300, yPos: 300, width: 50, height: 50 })
+  const enemyPropertiesRef = useRef<ImageProperties>({ xPos: 0, yPos: 0, width: 50, height: 50 })
+  const rafIdRef = useRef<number>(0)
 
-  // load player image
-  const playerImg: HTMLImageElement = new Image()
-  let playerProperties: imageProperties = { xPos: 300, yPos: 300, width: 50, height: 50 }
-  playerImg.src = '/src/assets/cat.svg'
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
 
+    const playerImg = new Image()
+    playerImg.src = '/src/assets/cat.svg'
 
-  //load enemy image
-  const enemyImg: HTMLImageElement = new Image()
-  let enemeyProperties: imageProperties = { xPos: 0, yPos: 0, width: 50, height: 50 }
-  enemyImg.src = '/src/assets/lizard.svg'
+    const enemyImg = new Image()
+    enemyImg.src = '/src/assets/lizard.svg'
 
-  // TODO: Refactor to just change the coordinate of the image instea dof redrawing here
-  window.addEventListener('keydown', (event: KeyboardEvent) => {
-    if (event.key === 'ArrowUp') {
-     playerProperties.yPos += 10
-     console.log(playerProperties)
+    // TODO: wrap so player doesn't go off screen
+    const onKeyDown = (event: KeyboardEvent) => {
+      const p = playerPropertiesRef.current
+      const c = canvasRef.current
+      if (event.key === 'ArrowLeft') p.xPos -= 10
+      if (event.key === 'ArrowRight') p.xPos += 10
+      // TODO: add behavior for space press === "shoot"
     }
-    if (event.key === 'ArrowDown') {
-      //ctx?.clearRect(0, 0, 500, 500)
-      //ctx?.drawImage(playerImg, 300, 350, 50, 50)
-      playerProperties.yPos -= 10
-    }
-    if (event.key === 'ArrowLeft') {
-      //ctx?.clearRect(0, 0, 500, 500)
-      playerProperties.xPos -= 10
-    }
-    if (event.key === 'ArrowRight') {
-      //ctx?.clearRect(0, 0, 500, 500)
-      playerProperties.xPos += 10
-    }
-  })  
-  ctx?.clearRect(0, 0, 500, 500)
-  ctx?.drawImage(playerImg, playerProperties.xPos, playerProperties.yPos, playerProperties.width, playerProperties.height)
-  ctx?.drawImage(enemyImg, enemeyProperties.xPos, enemeyProperties.yPos, enemeyProperties.width, enemeyProperties.height)
 
-  // add a render function that will redraw all images to the correct coordinate
+    window.addEventListener('keydown', onKeyDown)
+
+    // TODO: update enemy position automatically every frame
+
+    const update = () => {
+      const p = playerPropertiesRef.current
+      const e = enemyPropertiesRef.current
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(playerImg, p.xPos, p.yPos, p.width, p.height)
+      ctx.drawImage(enemyImg, e.xPos, e.yPos, e.width, e.height)
+      rafIdRef.current = requestAnimationFrame(update)
+    }
+
+    rafIdRef.current = requestAnimationFrame(update)
+
+    return () => {
+      cancelAnimationFrame(rafIdRef.current)
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [])
+
   return (
     <div>
       <canvas ref={canvasRef} width={500} height={500} />
