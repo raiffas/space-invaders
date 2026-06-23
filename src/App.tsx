@@ -1,122 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useRef, useEffect } from 'react'
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+interface AppProps {}
+interface imageProperties {
+  xPos: 0, 
+  yPos: 0,
+  width: 50,
+  height: 50
 }
 
-export default App
+export default function App( {}: AppProps) {
+  // set up canvas
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const ctx = canvasRef.current?.getContext('2d') as CanvasRenderingContext2D | null
+
+  // load player image
+  const playerImg: HTMLImageElement = new Image()
+  let playerProperties: imageProperties = { xPos: 300, yPos: 300, width: 50, height: 50 }
+  playerImg.src = '/src/assets/cat.svg'
+
+
+  //load enemy image
+  const enemyImg: HTMLImageElement = new Image()
+  let enemeyProperties: imageProperties = { xPos: 0, yPos: 0, width: 50, height: 50 }
+  enemyImg.src = '/src/assets/lizard.svg'
+
+  // TODO: Refactor to just change the coordinate of the image instea dof redrawing here
+  window.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key === 'ArrowUp') {
+     playerProperties.yPos += 10
+     console.log(playerProperties)
+    }
+    if (event.key === 'ArrowDown') {
+      //ctx?.clearRect(0, 0, 500, 500)
+      //ctx?.drawImage(playerImg, 300, 350, 50, 50)
+      playerProperties.yPos -= 10
+    }
+    if (event.key === 'ArrowLeft') {
+      //ctx?.clearRect(0, 0, 500, 500)
+      playerProperties.xPos -= 10
+    }
+    if (event.key === 'ArrowRight') {
+      //ctx?.clearRect(0, 0, 500, 500)
+      playerProperties.xPos += 10
+    }
+  })  
+  ctx?.clearRect(0, 0, 500, 500)
+  ctx?.drawImage(playerImg, playerProperties.xPos, playerProperties.yPos, playerProperties.width, playerProperties.height)
+  ctx?.drawImage(enemyImg, enemeyProperties.xPos, enemeyProperties.yPos, enemeyProperties.width, enemeyProperties.height)
+
+  // add a render function that will redraw all images to the correct coordinate
+  return (
+    <div>
+      <canvas ref={canvasRef} width={500} height={500} />
+    </div>
+  )
+}
