@@ -1,0 +1,84 @@
+These are my notes, please ignore them 
+- npm run dev to start app
+
+edit src/App.tsx and save to test 
+App.css holds all the class and id style definitions
+plan is probably create a fresh App.tsx page and just get an element rendering onto the page
+
+Learning TypeScript
+Read through "Everyday Types" and "Object Types" 
+- string
+- number --> no int/float, just number
+- boolean
+- array --> []
+- generics T<U>
+- tuples [number]
+- any --> no typechecking, use compiler flag noImplicitAny to flag any inplicit any as an error
+
+TS will infer type e.g. let myName = "Alice"; // myName is now string
+
+NOTE: Use fewer type annotations than you think, TypeScript can understand with less context than C++
+
+parameter type annotations and return type annotations
+Annotations == they go after you delcare the var name (not before like C++)
+function greet(name: string) {
+	console.log("Hello, " + name.toUpperCase() + "!!")
+}
+
+function getFavNum() : number {
+	return 26;
+}  // don't usually need a return type annotation because TS will infer the functions return type base don its return statements
+
+TODO: TS mentions a concept called promise --> look into this, I'm not familiar with this concept but it seems like an important concept to grasp esp for async tasks (but isn't imperative for right now)
+
+---- I think the point here with the basic types is 1. there are 3 (string, number, boolean) and 2. in most cases, type is inferred so I don't need to woryr about declaring every type in fact its better to air on the side of don't delcare?----------
+
+Object Types
+- declare inside of function params: 
+function printCoord(pt: {x: number; y: number}) {
+	console.log("The coordinate's x valye is " + pt.x);
+	consooe.log("The coordinate's y value is " + pt.y);
+}
+printCoord( {x : 3, x: 7} );
+
+optional params--> add ? after param name to makr as optional
+function printName(obj: { first, last? }) {
+//
+}
+	- if you try to access property that doesn't exits, return undefined instead of runtime error. SO IMPORTANT TO CHECK FOR UNDEFINED WHEN CHECKING VALUES OF OBJECT
+	- for shorthand you can use console.log(obj.last?.toUpperCase()) instead of checking if (obj.last !== undefined)
+
+Union types
+-- this is different from c++, but you can specify args to be the more than one type and then you'll have to check type or only use functions that are available to both types in the union.
+
+function printID( id: number | string) {
+	cnosole.log("Your ID is " + id);
+}
+
+printID(101);
+printID("202"); // both of these will work
+
+type alias (similar to specifying struct)
+type Point = {
+	x: number;
+	y: number;
+};
+
+function printCoord(pt: Point)
+
+type ID = number | string;
+
+interface is similar but new props can be added to an interface, type cannot
+interface Point {
+	x: number;
+	y: number'
+}
+
+Type Assertions
+const myCanvas = document,.getElementById("main_canvas") as HTMLCanvasElement;
+	- type assertions are removed at compile time so no runtime checking. no exception or null generated if the type assertion is wrong
+
+
+Object Types
+
+
