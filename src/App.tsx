@@ -13,7 +13,13 @@ function getRandomArbitrary(min: number, max: number) {
 
 // TODO
 function wrapPosition(value: number, min: number, max: number): number {
-  return value;
+  if (value >= min && value <= max) {
+    return value;
+  } else if (value < min) {
+    return max;
+  } else if (value > max) {
+    return min;
+  }
 }
 
 // should this be here?
@@ -39,25 +45,31 @@ export default function App() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // TODO: wrap so player doesn't go off screen
+    let lastUpdateFrameNumber = 0;
+
     const onKeyDown = (event: KeyboardEvent) => {
       const p = playerPropertiesRef.current
       const c = canvasRef.current
       if (event.key === 'ArrowLeft') p.xPos -= 10
       if (event.key === 'ArrowRight') p.xPos += 10
+      p.xPos = wrapPosition(p.xPos, 0, canvasRef.current?.width)
+      //console.log('player xPos:', p.xPos)
       // TODO: add behavior for space press === "shoot"
     }
 
     window.addEventListener('keydown', onKeyDown)
 
     const update = () => {
+      console.log(rafIdRef.current)
       const p = playerPropertiesRef.current
       const e = enemyPropertiesRef.current
 
-      // TODO: wrap enemy position so it doesn't go off screen
-      // TODO: make movement look less jittery (update movement at set interval)
-      // Is this the best place for this?
-     // e.xPos += getRandomArbitrary(-2, 5)
+      // TODO: change this so enemy has a speed that it moves
+      if (rafIdRef.current - lastUpdateFrameNumber >= 10) {
+        e.xPos += getRandomArbitrary(-2, 5)
+        e.xPos = wrapPosition(e.xPos, 0, canvasRef.current?.width)
+        lastUpdateFrameNumber = rafIdRef.current;
+      }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.drawImage(playerImg, p.xPos, p.yPos, p.width, p.height)
