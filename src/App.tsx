@@ -11,7 +11,6 @@ function getRandomArbitrary(min: number, max: number) {
   return Math.random() * (max - min) + min;
 }
 
-// TODO
 function wrapPosition(value: number, min: number, max: number): number {
   if (value >= min && value <= max) {
     return value;
@@ -20,6 +19,15 @@ function wrapPosition(value: number, min: number, max: number): number {
   } else if (value > max) {
     return min;
   }
+}
+
+function drawGame(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, p: ImageProperties, e: ImageProperties) {
+  console.log('player: ', p)
+  console.log('enemy: ', e)
+  if(!canvas || !ctx) return
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.drawImage(playerImg, p.xPos, p.yPos, p.width, p.height)
+  ctx.drawImage(enemyImg, e.xPos, e.yPos, e.width, e.height)
 }
 
 // should this be here?
@@ -33,50 +41,72 @@ const enemySpeed = 1
 let playerSpeed = 0
 
 export default function App() {
+  //const [playerPosition, setPlayerPosition] = useState<{ xPos: number; yPos: number }>({ xPos: 300, yPos: 300 })
+  const onKeyDown=(event: KeyboardEvent) => {
+    const p = playerPropertiesRef.current
+    const s = pawPropertiesRef.current
+    const c = canvasRef.current
+    if (event.key === 'ArrowLeft') {
+      //setPlayerPosition({...playerPosition, xPos: playerPosition.xPos - 10 })
+      p.xPos = p.xPos - 10
+      console.log('arrowleft')
+    }
+    if (event.key === 'ArrowRight') {
+      //setPlayerPosition({...playerPosition, xPos: playerPosition.xPos + 10 })
+      p.xPos = p.xPos + 10
+      console.log('arrowright')
+    }
+  }
+        
   // set up refs
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const playerPropertiesRef = useRef<ImageProperties>({ xPos: 300, yPos: 300, width: 50, height: 50 })
+  const playerPropertiesRef = useRef<ImageProperties>({ xPos: 300, yPos: 300,  width: 50, height: 50 })
   const enemyPropertiesRef = useRef<ImageProperties>({ xPos: 0, yPos: 0, width: 50, height: 50 })
   const pawPropertiesRef = useRef<ImageProperties>({ xPos: 0, yPos: 0, width: 25, height: 25 })
   const rafIdRef = useRef<number>(0)
 
   //const [playerSpeed, setPlayerSpeed] = useState<number>(0)
   console.log(playerSpeed)
-  //guaranteed to run at least once when the component mounts
-  useEffect(() => {
-    // the code we want to run ------------------------------------
-    // check if canvas has been mounted
-    // returns if not mounted --> handles null case
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
 
+  const [seconds, setSeconds] = useState(0)
+
+
+  //setup
+
+  useEffect(() => {
+    console.log('setup entered')
+    // if (!canvas) {
+    //   console.log('canvas not found')
+    //   return
+    // }
+    // if (!ctx) {
+    //   console.log('2d context not found')
+    //   return
+    // }
+    window.addEventListener('keydown', onKeyDown)
+    //drawGame(canvas, ctx, playerPropertiesRef.current, enemyPropertiesRef.current)
+  
+    // clean up 
+    return () => {
+      cancelAnimationFrame(rafIdRef.current)
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, []) // the dependency array
+
+  // render loop
+  useEffect(() => {
     let lastrafID= 0;
     let deltaTime  = 0;
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      const p = playerPropertiesRef.current
-      const s = pawPropertiesRef.current
-      const c = canvasRef.current
-      if (event.key === 'ArrowLeft') p.xPos -= 10
-      if (event.key === 'ArrowRight') p.xPos += 10
-      p.xPos = wrapPosition(p.xPos, 0, canvasRef.current?.width)
-      if (event.key === ' '){
-        console.log('shoot')
-        // shoot thing out of cat head
-        playerSpeed = 1
-        
+    const interval = setInterval(() => {
+      setSeconds(prevSeconds => prevSeconds + 1)
 
-        console.log(playerSpeed)
-        //ctx.drawImage(pawImg, p.xPos, p.yPos + 10, s.width, s.height)
-      }
-    }
-
-    window.addEventListener('keydown', onKeyDown)
+    }, 1000)
 
     const update = () => {
-      //nsole.log(rafIdRef.current)
+      console.log('update called')
+      const canvas  = canvasRef.current
+      const ctx = canvas?.getContext('2d')
       const p = playerPropertiesRef.current
       const e = enemyPropertiesRef.current
       const s = pawPropertiesRef.current
@@ -90,32 +120,29 @@ export default function App() {
       e.xPos = wrapPosition(e.xPos, 0, canvasRef.current?.width)
 
       // update player pos based on speed
-      p.yPos -= playerSpeed * deltaTime;
+      //p.yPos -= playerSpeed * deltaTime;
       // TODO: on collision with enemy playerSpeed = 0
 
-      // set paw position
-      //s.xPos = p.xPos + 10
-      //s.yPos = p.yPos + 100
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.drawImage(playerImg, p.xPos, p.yPos, p.width, p.height)
-      ctx.drawImage(enemyImg, e.xPos, e.yPos, e.width, e.height)
+      //ctx.clearRect(0, 0, canvas.width, canvas.height)
+      //ctx.drawImage(playerImg, p.xPos, p.yPos, p.width, p.height)
+      //ctx.drawImage(enemyImg, e.xPos, e.yPos, e.width, e.height)
       //ctx.drawImage(pawImg, s.xPos , s.yPos, s.width, s.height)
+      drawGame(canvas, ctx, p, e)
      
-      rafIdRef.current = requestAnimationFrame(update) // infinite render loop
+      //rafIdRef.current = requestAnimationFrame(update) // infinite render loop
     }
     rafIdRef.current = requestAnimationFrame(update) //requestAnimationFrame calls update
-
-    //optional return function -------------------------------------
     return () => {
-      cancelAnimationFrame(rafIdRef.current)
-      window.removeEventListener('keydown', onKeyDown)
+      clearInterval(interval)
     }
-  }, []) // the dependency array
+  })
 
   return (
     <div>
-      <canvas ref={canvasRef} width={500} height={500} />
+      <canvas 
+        ref={canvasRef} 
+        width={500} 
+        height={500} />
     </div>
   )
 }
